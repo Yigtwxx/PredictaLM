@@ -106,8 +106,9 @@ def complete(req: CompleteRequest):
         out_ids = _model.generate(
             input_ids,
             max_new_tokens=req.max_new_tokens,
-            temperature=1.0,
-            top_k=5,
+            temperature=0.7,
+            top_k=50,
+            top_p = 0.9,
         )
 
     out_ids = out_ids[0].tolist()

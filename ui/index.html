@@ -2,53 +2,36 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <title>PredictaLM Notebook</title>
+    <title>PredictaLM</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="page">
-      <div class="notebook">
-        <header class="nb-header">
-          <div class="nb-title">
-            <h1>PredictaLM</h1>
-            <p>Turkish next-word prediction — notebook demo</p>
+    <div class="app-root">
+      <!-- ARKA PLANDA YAZI EFEKTİ -->
+      <div class="background-layer" id="background-layer"></div>
+
+      <!-- ÖN PANEL (BURAYI KENDİ İSTEDİĞİN GİBİ DÜZENLEYEBİLİRSİN) -->
+      <div class="main-panel">
+        <h1 class="app-title">PredictaLM</h1>
+        <p class="app-subtitle">
+          Metnini yaz, modeli dene.
+        </p>
+
+        <div class="io-container">
+          <div class="io-block">
+            <label for="input-text">Girdi</label>
+            <textarea id="input-text" placeholder="Buraya metin yaz..."></textarea>
           </div>
-          <div class="nb-actions">
-            <button id="new-page-btn" type="button" class="ghost-btn">
-              Yeni sayfa
-            </button>
+          <div class="io-block">
+            <label for="output-text">Model Çıktısı</label>
+            <textarea id="output-text" placeholder="Model çıktısı burada görünecek..." readonly></textarea>
           </div>
-        </header>
+        </div>
 
-        <main class="nb-body">
-          <section class="nb-section">
-            <label for="text-input" class="nb-label">Cümleyi yaz:</label>
-            <div class="input-wrapper">
-              <textarea
-                id="text-input"
-                rows="3"
-                placeholder="Örn: merhaba hava çok..."
-                autocomplete="off"
-              ></textarea>
-              <div id="suggestion" class="suggestion">
-                Öneri: <span id="next-word-suggestion">—</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="nb-section btn-row">
-            <button id="generate-btn" type="button" class="primary-btn">
-              Cümleyi tamamla
-            </button>
-          </section>
-
-          <section class="nb-section">
-            <h2 class="nb-label">Sonuç (modelin tam çıktısı):</h2>
-            <div class="result-box">
-              <p id="full-output"></p>
-            </div>
-          </section>
-        </main>
+        <!-- Buraya istersen buton / ayar vs. eklersin -->
+        <div class="controls">
+          <button id="dummy-button">Çalıştır (örnek)</button>
+        </div>
       </div>
     </div>
 

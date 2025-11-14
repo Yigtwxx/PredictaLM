@@ -1,95 +1,104 @@
-// API aynı origin'de çalışıyor (http://localhost:7860), bu yüzden base boş.
-const API_BASE = "";
+// === Arka planda rastgele kelime/ifade yazma efekti ===
 
-const inputEl = document.getElementById("text-input");
-const nextWordEl = document.getElementById("next-word-suggestion");
-const fullOutputEl = document.getElementById("full-output");
-const generateBtn = document.getElementById("generate-btn");
-const newPageBtn = document.getElementById("new-page-btn");
+function setupBackgroundTyping() {
+  const layer = document.getElementById("background-layer");
+  if (!layer) return;
 
-let debounceTimer = null;
+  // Kelime havuzu – istediğin gibi değiştir / ekle
+  const words = [
+    "neural",
+    "token",
+    "context",
+    "embedding",
+    "gradient",
+    "attention",
+    "transformer",
+    "sequence",
+    "PyTorch",
+    "dataset",
+    "predict",
+    "language",
+    "model",
+    "entropy",
+    "loss",
+    "Python",
+    "batch",
+    "epoch",
+    "optimizer",
+    "tensor",
+    "Turkish",
+    "NLP",
+    "PredictaLM",
+    "GPU",
+    "RTX4070"
+  ];
 
-// Küçük yardımcı: butonu disable/enable et
-function setGenerating(isGenerating) {
-  if (isGenerating) {
-    generateBtn.disabled = true;
-    generateBtn.textContent = "Çalışıyor...";
-  } else {
-    generateBtn.disabled = false;
-    generateBtn.textContent = "Cümleyi tamamla";
+  function spawnPhrase() {
+    // 2–4 kelimelik rastgele bir ifade oluştur
+    const phraseLength = 2 + Math.floor(Math.random() * 3); // 2,3,4
+    const chosen = [];
+    for (let i = 0; i < phraseLength; i++) {
+      const w = words[Math.floor(Math.random() * words.length)];
+      chosen.push(w);
+    }
+    const phrase = chosen.join(" ");
+
+    const el = document.createElement("span");
+    el.className = "background-word";
+
+    // Rastgele konum
+    const left = Math.random() * 100; // %
+    const top = Math.random() * 100; // %
+    el.style.left = left + "%";
+    el.style.top = top + "%";
+
+    // Hafif boyut farkı
+    const size = 10 + Math.random() * 10; // 10–20px
+    el.style.fontSize = size + "px";
+
+    layer.appendChild(el);
+
+    // Harf harf yazma
+    let i = 0;
+    const typingSpeed = 35 + Math.random() * 55; // 35–90ms
+
+    const typeInterval = setInterval(() => {
+      el.textContent += phrase[i];
+      el.style.opacity = 1;
+
+      i++;
+      if (i >= phrase.length) {
+        clearInterval(typeInterval);
+
+        // Biraz ekranda kalsın, sonra fade-out
+        setTimeout(() => {
+          el.classList.add("fade-out");
+          setTimeout(() => {
+            el.remove();
+          }, 1600);
+        }, 900 + Math.random() * 1200);
+      }
+    }, typingSpeed);
   }
+
+  // Düzenli aralıklarla yeni ifadeler üret
+  setInterval(spawnPhrase, 450); // 0.45 saniyede bir yeni ifade
 }
 
-// Arka planda "next word" önerisi için hafif istek
-async function fetchGhostSuggestion(text) {
-  if (!text.trim()) {
-    nextWordEl.textContent = "—";
-    return;
-  }
+// DOM hazır olduğunda başlat
+document.addEventListener("DOMContentLoaded", () => {
+  setupBackgroundTyping();
 
-  try {
-    const res = await fetch(`${API_BASE}/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: text, max_new_tokens: 3 }),
+  // Öndeki panel için örnek bir handler (zorunlu değil)
+  const btn = document.getElementById("dummy-button");
+  const input = document.getElementById("input-text");
+  const output = document.getElementById("output-text");
+
+  if (btn && input && output) {
+    btn.addEventListener("click", () => {
+      // Şimdilik sadece inputu kopyalıyor
+      // Sonra buraya API / model entegrasyonunu bağlarsın
+      output.value = "Model çıktısı burada gösterilecek.\n\nGirdi:\n" + input.value;
     });
-
-    if (!res.ok) {
-      console.warn("Ghost suggestion failed:", res.status);
-      return;
-    }
-
-    const data = await res.json();
-    nextWordEl.textContent = data.next_word || "—";
-  } catch (err) {
-    console.error("Ghost suggestion error:", err);
   }
-}
-
-// Input değiştikçe debounce ile ghost suggestion al
-inputEl.addEventListener("input", () => {
-  const text = inputEl.value;
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => fetchGhostSuggestion(text), 350);
-});
-
-// Ana buton: tam cümleyi üret
-generateBtn.addEventListener("click", async () => {
-  const text = inputEl.value.trim();
-  if (!text) return;
-
-  setGenerating(true);
-  fullOutputEl.textContent = "";
-
-  try {
-    const res = await fetch(`${API_BASE}/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: text, max_new_tokens: 20 }),
-    });
-
-    if (!res.ok) {
-      console.error("Complete request failed:", res.status);
-      fullOutputEl.textContent = "Hata: " + res.status;
-      setGenerating(false);
-      return;
-    }
-
-    const data = await res.json();
-    fullOutputEl.textContent = data.full_completion || "";
-    nextWordEl.textContent = data.next_word || nextWordEl.textContent;
-  } catch (err) {
-    console.error("Complete request error:", err);
-    fullOutputEl.textContent = "Ağ hatası veya sunucu yanıt vermedi.";
-  } finally {
-    setGenerating(false);
-  }
-});
-
-// Yeni sayfa: input + sonuçları temizle
-newPageBtn.addEventListener("click", () => {
-  inputEl.value = "";
-  fullOutputEl.textContent = "";
-  nextWordEl.textContent = "—";
-  inputEl.focus();
 });

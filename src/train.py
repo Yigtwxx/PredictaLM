@@ -4,6 +4,7 @@
 import os
 import csv
 import math
+import time  # <-- eklendi
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.optim import AdamW
@@ -11,6 +12,10 @@ from torch.optim import AdamW
 from tokenizer import WordTokenizer
 from dataset import LMTextDataset, collate_batch
 from model import MiniGPT, MiniGPTConfig
+from pynvml import *
+
+nvmlInit()
+handle = nvmlDeviceGetHandleByIndex(0)  # 0 = ilk GPU
 
 
 def train(args):
@@ -47,7 +52,7 @@ def train(args):
         batch_size=args.batch_size,
         shuffle=True,
         collate_fn=lambda b: collate_batch(b, pad_id=0),
-        num_workers=0,        # Windows için güvenli
+        num_workers=0,  # Windows için güvenli
         pin_memory=use_cuda,
     )
     val_loader = DataLoader(
@@ -137,6 +142,8 @@ def train(args):
 
     # Epoch döngüsü
     for epoch in range(start_epoch, args.epochs + 1):
+        epoch_start_time = time.time()  # <-- epoch başlangıç zamanı
+
         model.train()
         total_loss = 0.0
         total_tokens = 0
@@ -193,11 +200,19 @@ def train(args):
                 val_loss_total += loss.item() * tokens
                 val_tokens += tokens
 
+        # Epoch sonu validation metriği
         val_loss = val_loss_total / max(1, val_tokens)
         ppl = math.exp(val_loss)
+
+        # GPU sıcaklığı ve epoch süresi
+        gpu_temp = nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU)
+        epoch_duration = time.time() - epoch_start_time
+
+        # Konsola özet yaz
         print(
             f"Epoch {epoch} DONE | Train loss: {train_loss:.4f} "
-            f"| Val loss: {val_loss:.4f} | Val ppl={ppl:.2f}"
+            f"| Val loss: {val_loss:.4f} | Val ppl={ppl:.2f} "
+            f"| GPU Temp={gpu_temp}°C | Duration={epoch_duration:.1f}s"
         )
 
         # Log'a yaz
@@ -235,24 +250,24 @@ if __name__ == "__main__":
     class Args:
         # Veri ve model ayarları
         data_path = "data/wiki_clean.txt"
-        limit_lines = 800000    # RAM için satır limiti
-        max_len = 256          # Maksimum token uzunluğu
+        limit_lines = 1_000_000  # RAM için satır limiti
+        max_len = 256            # Maksimum token uzunluğu
 
         # Eğitim ayarları
-        batch_size = 32 
+        batch_size = 64
         epochs = 10
-        lr = 3e-4
+        lr = 2e-4
 
         # Model boyutları
-        d_model = 256
-        n_heads = 4
-        n_layers = 4
-        d_ff = 1024
+        d_model = 512
+        n_heads = 8
+        n_layers = 8
+        d_ff = 2048
         dropout = 0.1
 
         # Log ve resume
-        log_interval = 50       # Kaç batch'te bir log basılsın
-        resume = True           # Checkpoint varsa kaldığı yerden devam et
+        log_interval = 50  # Kaç batch'te bir log basılsın
+        resume = True  # Checkpoint varsa kaldığı yerden devam et
 
     args = Args()
     train(args)
