@@ -13,6 +13,10 @@ from tokenizer import WordTokenizer
 from model import MiniGPT, MiniGPTConfig
 
 
+# =====================================
+#   REQUEST / RESPONSE MODELLERİ
+# =====================================
+
 class CompleteRequest(BaseModel):
     prompt: str
     max_new_tokens: int = 3
@@ -21,6 +25,10 @@ class CompleteRequest(BaseModel):
 class CompleteResponse(BaseModel):
     next_word: str
     full_completion: str
+
+
+class GenerateResponse(BaseModel):
+    output: str
 
 
 # =====================================
@@ -65,13 +73,42 @@ def _load_model():
     print("✅ Model ve tokenizer yüklendi!")
 
 
+def _generate_internal(prompt: str, max_new_tokens: int):
+    """Hem /complete hem /generate için ortak inference fonksiyonu."""
+    _load_model()
+
+    prompt = prompt.strip()
+    if not prompt:
+        return "", ""
+
+    ids = _tokenizer.encode(prompt, add_special_tokens=True)
+    input_ids = torch.tensor([ids], dtype=torch.long, device=_device)
+
+    with torch.no_grad():
+        out_ids = _model.generate(
+            input_ids,
+            max_new_tokens=max_new_tokens,
+            temperature=0.7,
+            top_k=50,
+        )
+
+    out_ids = out_ids[0].tolist()
+    full_text = _tokenizer.decode(out_ids)
+
+    # Sadece prompt sonrası ilk yeni kelimeyi al
+    prompt_tokens = _tokenizer.encode(prompt, add_special_tokens=True)
+    new_ids = out_ids[len(prompt_tokens):]
+    next_word = _tokenizer.decode(new_ids[:1]) if new_ids else ""
+
+    return next_word, full_text
+
+
 # =====================================
 #   FASTAPI APP + LIFESPAN
 # =====================================
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     _load_model()
     print("🚀 API hazır!")
     yield
@@ -90,50 +127,34 @@ app.add_middleware(
 )
 
 
+# =====================================
+#   API ENDPOINTLERİ
+# =====================================
+
 @app.post("/complete", response_model=CompleteResponse)
 def complete(req: CompleteRequest):
-    """Metni tamamlayan endpoint."""
-    _load_model()
+    """Metni tamamlayan endpoint (next_word + full_completion)."""
+    next_word, full_text = _generate_internal(req.prompt, req.max_new_tokens)
+    return CompleteResponse(next_word=next_word, full_completion=full_text)
 
-    prompt = req.prompt.strip()
-    if not prompt:
-        return CompleteResponse(next_word="", full_completion="")
 
-    ids = _tokenizer.encode(prompt, add_special_tokens=True)
-    input_ids = torch.tensor([ids], dtype=torch.long, device=_device)
-
-    with torch.no_grad():
-        out_ids = _model.generate(
-            input_ids,
-            max_new_tokens=req.max_new_tokens,
-            temperature=0.7,
-            top_k=50,
-            top_p = 0.9,
-        )
-
-    out_ids = out_ids[0].tolist()
-    full_text = _tokenizer.decode(out_ids)
-
-    # Sadece prompt sonrası ilk yeni kelimeyi al
-    prompt_tokens = _tokenizer.encode(prompt, add_special_tokens=True)
-    new_ids = out_ids[len(prompt_tokens):]
-
-    next_word = _tokenizer.decode(new_ids[:1]) if new_ids else ""
-
-    return CompleteResponse(
-        next_word=next_word,
-        full_completion=full_text
-    )
+@app.post("/generate", response_model=GenerateResponse)
+async def generate_endpoint(req: CompleteRequest):
+    """
+    UI'nin kullandığı basit endpoint.
+    Sadece full_completion döner -> {"output": "..."}
+    """
+    _, full_text = _generate_internal(req.prompt, req.max_new_tokens)
+    return GenerateResponse(output=full_text)
 
 
 # =====================================
 #   UI SERVE (STATIC FILES)
 # =====================================
 
-BASE_DIR = os.path.dirname(__file__)              # .../src
-ROOT_DIR = os.path.dirname(BASE_DIR)              # .../PredictaLM
+BASE_DIR = os.path.dirname(__file__)   # .../src
+ROOT_DIR = os.path.dirname(BASE_DIR)   # .../PredictaLM
 
-# Hem src/ui hem root/ui konumlarına bak
 candidate_dirs = [
     os.path.join(BASE_DIR, "ui"),
     os.path.join(ROOT_DIR, "ui"),
@@ -152,7 +173,10 @@ if UI_DIR is None:
     )
 
 print(f"🖥️  UI klasörü: {UI_DIR}")
-app.mount("/", StaticFiles(directory=UI_DIR, html=True), name="ui")
+
+# ÖNEMLİ: Statik dosyaları /ui altına mount ediyoruz ki
+# /generate ve /complete endpointlerini ezmesin.
+app.mount("/ui", StaticFiles(directory=UI_DIR, html=True), name="ui")
 
 
 # =====================================
@@ -161,17 +185,11 @@ app.mount("/", StaticFiles(directory=UI_DIR, html=True), name="ui")
 
 if __name__ == "__main__":
     PORT = 7860
-    URL = f"http://localhost:{PORT}"
+    URL = f"http://localhost:{PORT}/ui"
 
-    # Tarayıcıyı biraz gecikmeli açmak daha stabil olur
     print(f"\n🌍 Tarayıcı açılıyor: {URL}\n")
-
-    # Model zaten lifespan içinde yükleniyor ama istersen elle de tetikleyebilirsin
-    # _load_model()
-
     webbrowser.open(URL)
 
-    # reload=False -> import string uyarısı yok, server düzgün başlar
     uvicorn.run(
         app,
         host="127.0.0.1",

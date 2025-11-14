@@ -1,10 +1,8 @@
-// === Arka planda rastgele kelime/ifade yazma efekti ===
-
+// === ARKA PLAN YAZI EFEKTİ ===
 function setupBackgroundTyping() {
   const layer = document.getElementById("background-layer");
   if (!layer) return;
 
-  // Kelime havuzu – istediğin gibi değiştir / ekle
   const words = [
     "neural",
     "token",
@@ -26,7 +24,7 @@ function setupBackgroundTyping() {
     "epoch",
     "optimizer",
     "tensor",
-    "Turkish",
+    "turkish",
     "NLP",
     "PredictaLM",
     "GPU",
@@ -34,8 +32,7 @@ function setupBackgroundTyping() {
   ];
 
   function spawnPhrase() {
-    // 2–4 kelimelik rastgele bir ifade oluştur
-    const phraseLength = 2 + Math.floor(Math.random() * 3); // 2,3,4
+    const phraseLength = 2 + Math.floor(Math.random() * 3); // 2–4 kelime
     const chosen = [];
     for (let i = 0; i < phraseLength; i++) {
       const w = words[Math.floor(Math.random() * words.length)];
@@ -46,19 +43,16 @@ function setupBackgroundTyping() {
     const el = document.createElement("span");
     el.className = "background-word";
 
-    // Rastgele konum
-    const left = Math.random() * 100; // %
-    const top = Math.random() * 100; // %
+    const left = Math.random() * 100;
+    const top = Math.random() * 100;
     el.style.left = left + "%";
     el.style.top = top + "%";
 
-    // Hafif boyut farkı
     const size = 10 + Math.random() * 10; // 10–20px
     el.style.fontSize = size + "px";
 
     layer.appendChild(el);
 
-    // Harf harf yazma
     let i = 0;
     const typingSpeed = 35 + Math.random() * 55; // 35–90ms
 
@@ -70,7 +64,6 @@ function setupBackgroundTyping() {
       if (i >= phrase.length) {
         clearInterval(typeInterval);
 
-        // Biraz ekranda kalsın, sonra fade-out
         setTimeout(() => {
           el.classList.add("fade-out");
           setTimeout(() => {
@@ -81,24 +74,66 @@ function setupBackgroundTyping() {
     }, typingSpeed);
   }
 
-  // Düzenli aralıklarla yeni ifadeler üret
-  setInterval(spawnPhrase, 450); // 0.45 saniyede bir yeni ifade
+  setInterval(spawnPhrase, 450);
 }
 
-// DOM hazır olduğunda başlat
+// === MODEL ÇAĞRISI ===
+// Buradaki URL'yi kendi FastAPI endpoint'ine göre değiştir:
+const API_URL = "/generate";
+
+async function callModel() {
+  const inputEl = document.getElementById("input-text");
+  const outputEl = document.getElementById("output-text");
+  const statusEl = document.getElementById("status");
+
+  if (!inputEl || !outputEl) return;
+
+  const text = inputEl.value.trim();
+  if (!text) {
+    outputEl.value = "";
+    return;
+  }
+
+  try {
+    statusEl.textContent = "Çalışıyor...";
+    statusEl.style.color = "rgba(255,255,255,0.7)";
+    outputEl.value = "";
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt: text })
+    });
+
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status);
+    }
+
+    const data = await res.json();
+
+    // FastAPI tarafında response'u nasıl döndürdüysen ona göre burayı düzenlersin.
+    // Örnek: {"output": "..."} veya {"completion": "..."}
+    const completion = data.output || data.completion || JSON.stringify(data, null, 2);
+
+    outputEl.value = completion;
+    statusEl.textContent = "Tamamlandı.";
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Hata: " + err.message;
+    statusEl.style.color = "#ff7b7b";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   setupBackgroundTyping();
 
-  // Öndeki panel için örnek bir handler (zorunlu değil)
-  const btn = document.getElementById("dummy-button");
-  const input = document.getElementById("input-text");
-  const output = document.getElementById("output-text");
-
-  if (btn && input && output) {
-    btn.addEventListener("click", () => {
-      // Şimdilik sadece inputu kopyalıyor
-      // Sonra buraya API / model entegrasyonunu bağlarsın
-      output.value = "Model çıktısı burada gösterilecek.\n\nGirdi:\n" + input.value;
+  const btn = document.getElementById("run-button");
+  if (btn) {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      callModel();
     });
   }
 });

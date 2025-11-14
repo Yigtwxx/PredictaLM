@@ -7,30 +7,35 @@
   </head>
   <body>
     <div class="app-root">
-      <!-- ARKA PLANDA YAZI EFEKTİ -->
+      <!-- ARKA PLAN YAZI EFEKTİ -->
       <div class="background-layer" id="background-layer"></div>
 
-      <!-- ÖN PANEL (BURAYI KENDİ İSTEDİĞİN GİBİ DÜZENLEYEBİLİRSİN) -->
+      <!-- ÖN PANEL -->
       <div class="main-panel">
         <h1 class="app-title">PredictaLM</h1>
-        <p class="app-subtitle">
-          Metnini yaz, modeli dene.
-        </p>
+        <p class="app-subtitle">Metnini yaz, modeli dene.</p>
 
         <div class="io-container">
           <div class="io-block">
             <label for="input-text">Girdi</label>
-            <textarea id="input-text" placeholder="Buraya metin yaz..."></textarea>
+            <textarea
+              id="input-text"
+              placeholder="Buraya metin yaz..."
+            ></textarea>
           </div>
           <div class="io-block">
             <label for="output-text">Model Çıktısı</label>
-            <textarea id="output-text" placeholder="Model çıktısı burada görünecek..." readonly></textarea>
+            <textarea
+              id="output-text"
+              placeholder="Model çıktısı burada görünecek..."
+              readonly
+            ></textarea>
           </div>
         </div>
 
-        <!-- Buraya istersen buton / ayar vs. eklersin -->
         <div class="controls">
-          <button id="dummy-button">Çalıştır (örnek)</button>
+          <button id="run-button">Çalıştır</button>
+          <span id="status" class="status-text"></span>
         </div>
       </div>
     </div>
