@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PredictaLM Notebook</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="notebook">
+        <header class="nb-header">
+          <div class="nb-title">
+            <h1>PredictaLM</h1>
+            <p>Turkish next-word prediction — notebook demo</p>
+          </div>
+          <div class="nb-actions">
+            <button id="new-page-btn" type="button" class="ghost-btn">
+              Yeni sayfa
+            </button>
+          </div>
+        </header>
+
+        <main class="nb-body">
+          <section class="nb-section">
+            <label for="text-input" class="nb-label">Cümleyi yaz:</label>
+            <div class="input-wrapper">
+              <textarea
+                id="text-input"
+                rows="3"
+                placeholder="Örn: merhaba hava çok..."
+                autocomplete="off"
+              ></textarea>
+              <div id="suggestion" class="suggestion">
+                Öneri: <span id="next-word-suggestion">—</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="nb-section btn-row">
+            <button id="generate-btn" type="button" class="primary-btn">
+              Cümleyi tamamla
+            </button>
+          </section>
+
+          <section class="nb-section">
+            <h2 class="nb-label">Sonuç (modelin tam çıktısı):</h2>
+            <div class="result-box">
+              <p id="full-output"></p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

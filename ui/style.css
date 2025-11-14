@@ -1,0 +1,209 @@
+/* Genel sayfa */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #050505;
+  color: #f5f5f5;
+}
+
+/* Ortalanmış "defter" sayfası */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Notebook kartı */
+.notebook {
+  background: #111;
+  border-radius: 16px;
+  max-width: 720px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  padding: 24px 28px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Solda defter spirali efekti */
+.notebook::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 8px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #222 0,
+    #222 10px,
+    #111 10px,
+    #111 20px
+  );
+  border-radius: 4px;
+}
+
+/* Hafif yatay çizgiler (defter sayfası efekti) */
+.nb-body {
+  margin-top: 16px;
+  padding: 16px 12px 8px;
+  border-radius: 12px;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 1px,
+    rgba(0, 0, 0, 0) 1px
+  );
+  background-size: 100% 28px;
+}
+
+/* Header */
+.nb-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.nb-title h1 {
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+}
+
+.nb-title p {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #b3b3b3;
+}
+
+/* Bölümler */
+.nb-section {
+  margin-bottom: 18px;
+}
+
+.nb-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #dcdcdc;
+  margin-bottom: 6px;
+}
+
+/* Input alanı */
+.input-wrapper {
+  position: relative;
+  border-radius: 10px;
+  background: #080808;
+  padding: 10px 12px 32px;
+  border: 1px solid #262626;
+}
+
+textarea#text-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  max-height: 200px;
+  background: transparent;
+  color: #f5f5f5;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Öneri satırı */
+.suggestion {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  font-size: 0.8rem;
+  color: #9f9f9f;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.suggestion span {
+  color: #e5e5e5;
+  font-style: italic;
+}
+
+/* Butonlar */
+.btn-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.primary-btn,
+.ghost-btn {
+  font-size: 0.9rem;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, transform 0.05s ease;
+}
+
+/* Ana buton (mavi değil, yumuşak gri-beyaz ton) */
+.primary-btn {
+  background: #f5f5f5;
+  color: #111;
+  border-color: #f5f5f5;
+}
+
+.primary-btn:hover {
+  background: #e2e2e2;
+}
+
+.primary-btn:active {
+  transform: translateY(1px);
+}
+
+/* Yeni sayfa butonu (ghost) */
+.ghost-btn {
+  background: transparent;
+  color: #e5e5e5;
+  border-color: #333;
+}
+
+.ghost-btn:hover {
+  background: #1a1a1a;
+  border-color: #444;
+}
+
+.ghost-btn:active {
+  transform: translateY(1px);
+}
+
+/* Sonuç kutusu */
+.result-box {
+  border-radius: 10px;
+  background: #080808;
+  border: 1px solid #262626;
+  padding: 10px 12px;
+  min-height: 40px;
+  font-size: 0.95rem;
+  color: #f5f5f5;
+  white-space: pre-wrap;
+}
+
+/* Küçük ekran uyumu */
+@media (max-width: 600px) {
+  .notebook {
+    padding: 18px 18px 22px;
+  }
+
+  .nb-body {
+    padding: 12px 8px 6px;
+  }
+}
