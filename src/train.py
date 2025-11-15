@@ -249,7 +249,7 @@ if __name__ == "__main__":
     # Argümanlarla uğraşmamak için sabit ayarlar
     class Args:
         # Veri ve model ayarları
-        data_path = "data/wiki_clean.txt"
+        data_path = "data/wiki_clean_processed.txt"
         limit_lines = 1_000_000  # RAM için satır limiti
         max_len = 256            # Maksimum token uzunluğu
 

@@ -128,13 +128,13 @@ body {
 /* Arka plandaki yazı efektleri (siyah-beyaz) */
 .background-word {
   position: absolute;
-  color: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.1);
   font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   white-space: nowrap;
   letter-spacing: 0.06em;
-  opacity: 0;
-  transition: opacity 0.35s ease-out, transform 1.8s ease-out;
+  opacity: 0.3;
+  transition: opacity 0.5s ease-out, transform 1.8s ease-out;
 }
 
 .background-word.fade-out {

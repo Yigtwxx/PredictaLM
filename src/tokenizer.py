@@ -1,4 +1,4 @@
-#python src/tokenizer.py --input data/wiki_clean.txt --output_dir outputs/tokenizer --vocab_size 30000 --min_freq 2
+#python src/tokenizer.py --input data/wiki_clean_processed.txt --output_dir outputs/tokenizer --vocab_size 30000 --min_freq 2
 #Üstteki kodla çalıştır
 import json
 from collections import Counter
