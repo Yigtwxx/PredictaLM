@@ -58,6 +58,7 @@ def _load_model():
     if not os.path.exists(tok_path):
         raise RuntimeError(f"❌ Tokenizer bulunamadı: {tok_path}")
 
+    # Checkpoint'i yükle
     ckpt = torch.load(ckpt_path, map_location="cpu")
     config = MiniGPTConfig(**ckpt["config"])
     model = MiniGPT(config)
@@ -65,6 +66,7 @@ def _load_model():
     model.to(_device)
     model.eval()
 
+    # Tokenizer
     tokenizer = WordTokenizer.load(tok_path)
 
     _model = model
@@ -74,14 +76,21 @@ def _load_model():
 
 
 def _generate_internal(prompt: str, max_new_tokens: int):
-    """Hem /complete hem /generate için ortak inference fonksiyonu."""
+    """
+    Hem /complete hem /generate için ortak inference fonksiyonu.
+    next_word ve full_completion döner.
+    """
     _load_model()
 
     prompt = prompt.strip()
     if not prompt:
         return "", ""
 
-    ids = _tokenizer.encode(prompt, add_special_tokens=True)
+    # Tokenize giriş
+    ids = _tokenizer.encode(prompt)
+    if len(ids) == 0:
+        return "", ""
+
     input_ids = torch.tensor([ids], dtype=torch.long, device=_device)
 
     with torch.no_grad():
@@ -92,13 +101,16 @@ def _generate_internal(prompt: str, max_new_tokens: int):
             top_k=50,
         )
 
+    # Çıktıyı decode et
     out_ids = out_ids[0].tolist()
     full_text = _tokenizer.decode(out_ids)
 
-    # Sadece prompt sonrası ilk yeni kelimeyi al
-    prompt_tokens = _tokenizer.encode(prompt, add_special_tokens=True)
+    # Sadece prompt sonrası ilk yeni kelimeyi hesapla
+    prompt_tokens = _tokenizer.encode(prompt)
     new_ids = out_ids[len(prompt_tokens):]
     next_word = _tokenizer.decode(new_ids[:1]) if new_ids else ""
+
+    print(f"[INFER] prompt='{prompt}' | next_word='{next_word}'")
 
     return next_word, full_text
 
@@ -109,6 +121,7 @@ def _generate_internal(prompt: str, max_new_tokens: int):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Uygulama başlarken modeli yükle
     _load_model()
     print("🚀 API hazır!")
     yield
@@ -133,7 +146,10 @@ app.add_middleware(
 
 @app.post("/complete", response_model=CompleteResponse)
 def complete(req: CompleteRequest):
-    """Metni tamamlayan endpoint (next_word + full_completion)."""
+    """
+    Metni tamamlayan endpoint (next_word + full_completion).
+    UI'de "sonraki kelime" gibi ince bir gösterim için ideal.
+    """
     next_word, full_text = _generate_internal(req.prompt, req.max_new_tokens)
     return CompleteResponse(next_word=next_word, full_completion=full_text)
 
@@ -174,7 +190,7 @@ if UI_DIR is None:
 
 print(f"🖥️  UI klasörü: {UI_DIR}")
 
-# ÖNEMLİ: Statik dosyaları /ui altına mount ediyoruz ki
+# Statik dosyaları /ui altına mount ediyoruz ki
 # /generate ve /complete endpointlerini ezmesin.
 app.mount("/ui", StaticFiles(directory=UI_DIR, html=True), name="ui")
 

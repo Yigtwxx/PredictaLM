@@ -110,11 +110,12 @@ async function callModel() {
   const outputEl = document.getElementById("output-text");
   const statusEl = document.getElementById("status");
 
-  if (!inputEl || !outputEl) return;
+  if (!inputEl || !outputEl || !statusEl) return;
 
   const text = inputEl.value.trim();
   if (!text) {
     outputEl.value = "";
+    statusEl.textContent = "";
     return;
   }
 
@@ -126,9 +127,9 @@ async function callModel() {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt: text })
+      body: JSON.stringify({ prompt: text }),
     });
 
     if (!res.ok) {
@@ -137,7 +138,7 @@ async function callModel() {
 
     const data = await res.json();
 
-    // FastAPI tarafında response'u nasıl döndürdüysen ona göre burayı düzenlersin.
+    // FastAPI tarafında response'u nasıl döndürdüysen ona göre:
     // Örnek: {"output": "..."} veya {"completion": "..."}
     const completion = data.output || data.completion || JSON.stringify(data, null, 2);
 
@@ -162,71 +163,80 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === GHOST PREDICTION (VS Code tarzı inline tahmin) ===
-  const inputEl = document.getElementById("input-text");
-  const ghostEl = document.getElementById("ghost-prediction");
+const inputEl = document.getElementById("input-text");
+const ghostEl = document.getElementById("ghost-prediction");
 
-  if (inputEl && ghostEl) {
-    let ghostTimeout = null;
+// Ana API_URL'in muhtemelen "/generate" için kullanıldığını varsayıyoruz.
+// Ghost için özel bir URL tanımlayalım:
+const GHOST_URL = "http://localhost:7860/complete";
 
-    inputEl.addEventListener("input", () => {
-      const text = inputEl.value;
+if (inputEl && ghostEl) {
+  let ghostTimeout = null;
 
-      // Boşsa ghost'u gizle
-      if (!text.trim()) {
-        ghostEl.textContent = "";
-        ghostEl.classList.remove("visible");
-        return;
-      }
+  inputEl.addEventListener("input", () => {
+    const current = inputEl.value;
 
-      // Kullanıcı yazmayı bitirsin diye küçük debounce
-      clearTimeout(ghostTimeout);
-      ghostTimeout = setTimeout(async () => {
-        try {
-          const prompt = inputEl.value;
-          if (!prompt.trim()) {
-            ghostEl.textContent = "";
-            ghostEl.classList.remove("visible");
-            return;
-          }
+    if (!current.trim()) {
+      ghostEl.textContent = "";
+      ghostEl.classList.remove("visible");
+      return;
+    }
 
-          const res = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ prompt })
-          });
-
-          if (!res.ok) {
-            throw new Error("HTTP " + res.status);
-          }
-
-          const data = await res.json();
-          let completion = data.output || data.completion || "";
-
-          if (!completion) {
-            ghostEl.textContent = "";
-            ghostEl.classList.remove("visible");
-            return;
-          }
-
-          // Eğer backend prompt + completion döndürüyorsa ve prompt ile başlıyorsa:
-          // (VS Code gibi, satırın tamamını ghost olarak gör)
-          if (completion.startsWith(prompt)) {
-            ghostEl.textContent = completion;
-          } else {
-            // Sadece sonraki kelimeyi eklemeye çalış
-            const extra = completion.split(/\s+/)[0] || "";
-            ghostEl.textContent = prompt + (extra ? " " + extra : "");
-          }
-
-          ghostEl.classList.add("visible");
-        } catch (err) {
-          console.error("Ghost prediction error:", err);
+    clearTimeout(ghostTimeout);
+    ghostTimeout = setTimeout(async () => {
+      try {
+        const prompt = inputEl.value;
+        if (!prompt.trim()) {
           ghostEl.textContent = "";
           ghostEl.classList.remove("visible");
+          return;
         }
-      }, 250); // 250ms sonra tahmini göster
+
+        const res = await fetch(GHOST_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // /complete endpoint'i CompleteRequest bekliyor:
+          // { "prompt": "...", "max_new_tokens": 3 }
+          body: JSON.stringify({ prompt, max_new_tokens: 3 }),
+        });
+
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+        // /complete cevabı: { next_word, full_completion }
+        const full = data.full_completion || "";
+        const next = data.next_word || "";
+
+        if (!full && !next) {
+          ghostEl.textContent = "";
+          ghostEl.classList.remove("visible");
+          return;
+        }
+
+        // 1) Tercihen full_completion prompt ile başlıyorsa onu göster
+        if (full && full.startsWith(prompt)) {
+          ghostEl.textContent = full;
+        } else if (next) {
+          // 2) Değilse sadece bir sonraki kelimeyi ekle
+          const base = prompt.endsWith(" ") ? prompt : prompt + " ";
+          ghostEl.textContent = base + next;
+        } else {
+          ghostEl.textContent = "";
+          ghostEl.classList.remove("visible");
+          return;
+        }
+
+        ghostEl.classList.add("visible");
+      } catch (err) {
+        console.error("Ghost prediction error:", err);
+        ghostEl.textContent = "";
+        ghostEl.classList.remove("visible");
+        }
+      }, 250);
     });
   }
 });

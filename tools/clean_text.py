@@ -24,11 +24,11 @@ def clean_line(text: str) -> str:
 
     # 4) Kelimelerin başındaki/sonundaki parantez & köşeli/çengelli parantezleri sil
     #    Örn: [kelime], (kelime), {kelime}, <kelime> → kelime
-    text = re.sub(r'[\[\]\|\{\}\#\'\(\)\<\>]+', ' ', text)
+    text = re.sub(r'[\[\]\|\1\2\3\4\5\6\7\8\9\0\{\}\#\'\(\)\<\>]+', ' ', text)
 
     # 5) Kelimeye bitişik olmayan tek karakter sembolleri sil
     #    Örn: " , . ; : tek başına duruyorsa silinecek
-    text = re.sub(r'\b[\"\'\:\;\,\.\!\?\-\=\+]\b', ' ', text)
+    text = re.sub(r'\b[\"\'\|\<\>\:\;\,\.\!\?\-\=\+]\b', ' ', text)
 
     # 6) Fazla boşlukları temizle
     text = re.sub(r'\s+', ' ', text).strip()

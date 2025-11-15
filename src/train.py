@@ -4,7 +4,7 @@
 import os
 import csv
 import math
-import time  # <-- eklendi
+import time
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.optim import AdamW
@@ -18,6 +18,71 @@ nvmlInit()
 handle = nvmlDeviceGetHandleByIndex(0)  # 0 = ilk GPU
 
 
+def build_mixed_corpus(wiki_path, chat_path, out_path,
+                       wiki_repeat=3, chat_repeat=1,
+                       wiki_limit_lines=None):
+    """
+    wiki + konuşma verisini tek bir dosyada birleştirir.
+    - Wiki satırlarını wiki_repeat kez (default: 3)
+    - Chat satırlarını chat_repeat kez (default: 1)
+    tekrarlar.
+    """
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    wiki_exists = os.path.exists(wiki_path)
+    chat_exists = os.path.exists(chat_path)
+
+    if not wiki_exists and not chat_exists:
+        raise FileNotFoundError(
+            f"Neither wiki file nor chat file exists.\n"
+            f"wiki_path={wiki_path}\nchat_path={chat_path}"
+        )
+
+    wiki_lines_used = 0
+    chat_lines_used = 0
+
+    with open(out_path, "w", encoding="utf-8") as fout:
+        # --- WIKI KISMI ---
+        if wiki_exists:
+            print(f"📚 Using wiki data from: {wiki_path}")
+            with open(wiki_path, "r", encoding="utf-8") as f:
+                for i, line in enumerate(f):
+                    if wiki_limit_lines is not None and i >= wiki_limit_lines:
+                        break
+                    line = line.rstrip("\n")
+                    if not line.strip():
+                        continue
+                    for _ in range(wiki_repeat):
+                        fout.write(line + "\n")
+                    wiki_lines_used += 1
+        else:
+            print(f"⚠️ Wiki file not found, skipping: {wiki_path}")
+
+        # --- CHAT KISMI ---
+        if chat_exists:
+            print(f"💬 Using chat data from: {chat_path}")
+            with open(chat_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.rstrip("\n")
+                    if not line.strip():
+                        # boş satırları da istersen koruyabilirsin
+                        # burada sadece tamamen boş olanları atlıyorum
+                        continue
+                    for _ in range(chat_repeat):
+                        fout.write(line + "\n")
+                    chat_lines_used += 1
+        else:
+            print(f"⚠️ Chat file not found, skipping: {chat_path}")
+
+    total_lines = wiki_lines_used * wiki_repeat + chat_lines_used * chat_repeat
+    print(
+        f"✅ Mixed corpus written to: {out_path}\n"
+        f"   wiki_lines_used={wiki_lines_used} (x{wiki_repeat})\n"
+        f"   chat_lines_used={chat_lines_used} (x{chat_repeat})\n"
+        f"   total_written_lines={total_lines}"
+    )
+
+
 def train(args):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -25,6 +90,19 @@ def train(args):
 
     os.makedirs("outputs/checkpoints", exist_ok=True)
     os.makedirs("outputs/logs", exist_ok=True)
+
+    # -------------------------------
+    # 1) Mixed corpus oluştur
+    # -------------------------------
+    print("🔀 Building mixed corpus (wiki x3 + chat x1)...")
+    build_mixed_corpus(
+        wiki_path=args.wiki_path,
+        chat_path=args.chat_path,
+        out_path=args.data_path,
+        wiki_repeat=3,
+        chat_repeat=1,
+        wiki_limit_lines=args.limit_lines,
+    )
 
     # Tokenizer yükle
     tokenizer_path = os.path.join("outputs", "tokenizer", "tokenizer.json")
@@ -36,7 +114,7 @@ def train(args):
         path=args.data_path,
         tokenizer=tokenizer,
         max_len=args.max_len,
-        limit_lines=args.limit_lines,
+        limit_lines=None,  # limit'i mixed corpus oluştururken uyguladık
     )
     print(f"Total samples in dataset: {len(dataset)}")
 
@@ -142,7 +220,7 @@ def train(args):
 
     # Epoch döngüsü
     for epoch in range(start_epoch, args.epochs + 1):
-        epoch_start_time = time.time()  # <-- epoch başlangıç zamanı
+        epoch_start_time = time.time()
 
         model.train()
         total_loss = 0.0
@@ -249,14 +327,17 @@ if __name__ == "__main__":
     # Argümanlarla uğraşmamak için sabit ayarlar
     class Args:
         # Veri ve model ayarları
-        data_path = "data/wiki_clean_processed.txt"
-        limit_lines = 1_000_000  # RAM için satır limiti
+        wiki_path = "data/wiki_clean_processed.txt"
+        chat_path = "data/turkish_chat_casual.txt"
+        data_path = "data/mixed_wiki_chat.txt"  # build_mixed_corpus çıktısı
+
+        limit_lines = 1_500_000  # WIKI için satır limiti
         max_len = 256            # Maksimum token uzunluğu
 
         # Eğitim ayarları
         batch_size = 64
         epochs = 10
-        lr = 2e-4
+        lr = 3e-4
 
         # Model boyutları
         d_model = 512
@@ -266,8 +347,8 @@ if __name__ == "__main__":
         dropout = 0.1
 
         # Log ve resume
-        log_interval = 75  # Kaç batch'te bir log basılsın
-        resume = True  # Checkpoint varsa kaldığı yerden devam et
+        log_interval = 250  # Kaç batch'te bir log basılsın
+        resume = True      # Checkpoint varsa kaldığı yerden devam et
 
     args = Args()
     train(args)

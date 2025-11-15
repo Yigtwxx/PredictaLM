@@ -128,12 +128,12 @@ body {
 /* Arka plandaki yazı efektleri (siyah-beyaz) */
 .background-word {
   position: absolute;
-  color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
   font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   white-space: nowrap;
   letter-spacing: 0.06em;
-  opacity: 0.3;
+  opacity: 0;
   transition: opacity 0.5s ease-out, transform 1.8s ease-out;
 }
 
@@ -154,9 +154,8 @@ body {
   }
 }
 
-/* === GHOST PREDICTION (VS Code tarzı) === */
+/* === Ghost Prediction (inline tahmin) === */
 
-/* Input için wrapper – eski görünümü korumak için border/background burada */
 .input-wrapper {
   position: relative;
   border-radius: 10px;
@@ -164,7 +163,7 @@ body {
   background: #050505;
 }
 
-/* Sadece input-text için textarea stilini biraz override ediyoruz */
+/* Sadece giriş alanındaki textarea (input-text) için özel stil */
 .input-wrapper textarea#input-text {
   border: none;
   background: transparent;
@@ -181,7 +180,7 @@ body {
   z-index: 2;
 }
 
-/* Ghost text – açık gri + animasyonlu giriş */
+/* Ghost text – açık gri + animasyon */
 #ghost-prediction {
   position: absolute;
   inset: 0;
