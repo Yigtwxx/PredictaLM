@@ -266,7 +266,7 @@ if __name__ == "__main__":
         dropout = 0.1
 
         # Log ve resume
-        log_interval = 50  # Kaç batch'te bir log basılsın
+        log_interval = 75  # Kaç batch'te bir log basılsın
         resume = True  # Checkpoint varsa kaldığı yerden devam et
 
     args = Args()

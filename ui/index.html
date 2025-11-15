@@ -18,10 +18,14 @@
         <div class="io-container">
           <div class="io-block">
             <label for="input-text">Girdi</label>
-            <textarea
-              id="input-text"
-              placeholder="Buraya metin yaz..."
-            ></textarea>
+            <!-- 👇 Ghost text için wrapper -->
+            <div class="input-wrapper">
+              <div id="ghost-prediction"></div>
+              <textarea
+                id="input-text"
+                placeholder="Buraya metin yaz..."
+              ></textarea>
+            </div>
           </div>
           <div class="io-block">
             <label for="output-text">Model Çıktısı</label>
@@ -42,4 +46,4 @@
 
     <script src="app.js"></script>
   </body>
-</html>
+</html

@@ -160,4 +160,73 @@ document.addEventListener("DOMContentLoaded", () => {
       callModel();
     });
   }
+
+  // === GHOST PREDICTION (VS Code tarzı inline tahmin) ===
+  const inputEl = document.getElementById("input-text");
+  const ghostEl = document.getElementById("ghost-prediction");
+
+  if (inputEl && ghostEl) {
+    let ghostTimeout = null;
+
+    inputEl.addEventListener("input", () => {
+      const text = inputEl.value;
+
+      // Boşsa ghost'u gizle
+      if (!text.trim()) {
+        ghostEl.textContent = "";
+        ghostEl.classList.remove("visible");
+        return;
+      }
+
+      // Kullanıcı yazmayı bitirsin diye küçük debounce
+      clearTimeout(ghostTimeout);
+      ghostTimeout = setTimeout(async () => {
+        try {
+          const prompt = inputEl.value;
+          if (!prompt.trim()) {
+            ghostEl.textContent = "";
+            ghostEl.classList.remove("visible");
+            return;
+          }
+
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+          });
+
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
+
+          const data = await res.json();
+          let completion = data.output || data.completion || "";
+
+          if (!completion) {
+            ghostEl.textContent = "";
+            ghostEl.classList.remove("visible");
+            return;
+          }
+
+          // Eğer backend prompt + completion döndürüyorsa ve prompt ile başlıyorsa:
+          // (VS Code gibi, satırın tamamını ghost olarak gör)
+          if (completion.startsWith(prompt)) {
+            ghostEl.textContent = completion;
+          } else {
+            // Sadece sonraki kelimeyi eklemeye çalış
+            const extra = completion.split(/\s+/)[0] || "";
+            ghostEl.textContent = prompt + (extra ? " " + extra : "");
+          }
+
+          ghostEl.classList.add("visible");
+        } catch (err) {
+          console.error("Ghost prediction error:", err);
+          ghostEl.textContent = "";
+          ghostEl.classList.remove("visible");
+        }
+      }, 250); // 250ms sonra tahmini göster
+    });
+  }
 });

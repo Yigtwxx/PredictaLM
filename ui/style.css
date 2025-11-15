@@ -153,3 +153,53 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* === GHOST PREDICTION (VS Code tarzı) === */
+
+/* Input için wrapper – eski görünümü korumak için border/background burada */
+.input-wrapper {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: #050505;
+}
+
+/* Sadece input-text için textarea stilini biraz override ediyoruz */
+.input-wrapper textarea#input-text {
+  border: none;
+  background: transparent;
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  border-radius: 10px;
+  color: #fdfdfd;
+  padding: 10px 12px;
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 13px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Ghost text – açık gri + animasyonlu giriş */
+#ghost-prediction {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px;
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 13px;
+  color: rgba(220, 220, 255, 0.45); /* açık gri / lila ton */
+  pointer-events: none;
+  white-space: pre-wrap;
+  z-index: 1;
+
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+#ghost-prediction.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
