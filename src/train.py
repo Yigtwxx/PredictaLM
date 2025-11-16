@@ -5,6 +5,7 @@ import os
 import csv
 import math
 import time
+
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.optim import AdamW
@@ -14,76 +15,15 @@ from dataset import LMTextDataset, collate_batch
 from model import MiniGPT, MiniGPTConfig
 from pynvml import *
 
+# GPU bilgisi için NVML başlat
 nvmlInit()
 handle = nvmlDeviceGetHandleByIndex(0)  # 0 = ilk GPU
 
 
-def build_mixed_corpus(wiki_path, chat_path, out_path,
-                       wiki_repeat=3, chat_repeat=1,
-                       wiki_limit_lines=None):
-    """
-    wiki + konuşma verisini tek bir dosyada birleştirir.
-    - Wiki satırlarını wiki_repeat kez (default: 3)
-    - Chat satırlarını chat_repeat kez (default: 1)
-    tekrarlar.
-    """
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-
-    wiki_exists = os.path.exists(wiki_path)
-    chat_exists = os.path.exists(chat_path)
-
-    if not wiki_exists and not chat_exists:
-        raise FileNotFoundError(
-            f"Neither wiki file nor chat file exists.\n"
-            f"wiki_path={wiki_path}\nchat_path={chat_path}"
-        )
-
-    wiki_lines_used = 0
-    chat_lines_used = 0
-
-    with open(out_path, "w", encoding="utf-8") as fout:
-        # --- WIKI KISMI ---
-        if wiki_exists:
-            print(f"📚 Using wiki data from: {wiki_path}")
-            with open(wiki_path, "r", encoding="utf-8") as f:
-                for i, line in enumerate(f):
-                    if wiki_limit_lines is not None and i >= wiki_limit_lines:
-                        break
-                    line = line.rstrip("\n")
-                    if not line.strip():
-                        continue
-                    for _ in range(wiki_repeat):
-                        fout.write(line + "\n")
-                    wiki_lines_used += 1
-        else:
-            print(f"⚠️ Wiki file not found, skipping: {wiki_path}")
-
-        # --- CHAT KISMI ---
-        if chat_exists:
-            print(f"💬 Using chat data from: {chat_path}")
-            with open(chat_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.rstrip("\n")
-                    if not line.strip():
-                        # boş satırları da istersen koruyabilirsin
-                        # burada sadece tamamen boş olanları atlıyorum
-                        continue
-                    for _ in range(chat_repeat):
-                        fout.write(line + "\n")
-                    chat_lines_used += 1
-        else:
-            print(f"⚠️ Chat file not found, skipping: {chat_path}")
-
-    total_lines = wiki_lines_used * wiki_repeat + chat_lines_used * chat_repeat
-    print(
-        f"✅ Mixed corpus written to: {out_path}\n"
-        f"   wiki_lines_used={wiki_lines_used} (x{wiki_repeat})\n"
-        f"   chat_lines_used={chat_lines_used} (x{chat_repeat})\n"
-        f"   total_written_lines={total_lines}"
-    )
-
-
 def train(args):
+    # -------------------------------
+    # Cihaz seçimi
+    # -------------------------------
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     print(f"Using device: {device}")
@@ -92,33 +32,38 @@ def train(args):
     os.makedirs("outputs/logs", exist_ok=True)
 
     # -------------------------------
-    # 1) Mixed corpus oluştur
+    # 1) Dataset: SADECE KENDİ DOSYAN
     # -------------------------------
-    print("🔀 Building mixed corpus (wiki x3 + chat x1)...")
-    build_mixed_corpus(
-        wiki_path=args.wiki_path,
-        chat_path=args.chat_path,
-        out_path=args.data_path,
-        wiki_repeat=3,
-        chat_repeat=1,
-        wiki_limit_lines=args.limit_lines,
-    )
+    print(f"📄 Using dataset file (no wiki mix): {args.data_path}")
+    if not os.path.exists(args.data_path):
+        raise FileNotFoundError(f"Dataset not found at {args.data_path}")
 
-    # Tokenizer yükle
+    # -------------------------------
+    # 2) Tokenizer yükle
+    # -------------------------------
     tokenizer_path = os.path.join("outputs", "tokenizer", "tokenizer.json")
-    tokenizer = WordTokenizer.load(tokenizer_path)
+    if not os.path.exists(tokenizer_path):
+        raise FileNotFoundError(
+            f"Tokenizer not found at {tokenizer_path}. "
+            f"Önce tokenizer.py ile tokenizer üretmelisin."
+        )
 
-    # Dataset
+    tokenizer = WordTokenizer.load(tokenizer_path)
+    print(f"Loaded tokenizer with vocab_size={tokenizer.vocab_size}")
+
+    # -------------------------------
+    # 3) Dataset & DataLoader
+    # -------------------------------
     print(f"Loading dataset from: {args.data_path}")
     dataset = LMTextDataset(
         path=args.data_path,
         tokenizer=tokenizer,
         max_len=args.max_len,
-        limit_lines=None,  # limit'i mixed corpus oluştururken uyguladık
+        limit_lines=args.limit_lines,  # None ise hepsini okur
     )
     print(f"Total samples in dataset: {len(dataset)}")
 
-    # Train / Val split
+    # Train / Val split (örneğin %95 / %5)
     val_size = max(1, int(0.05 * len(dataset)))
     train_size = len(dataset) - val_size
     train_ds, val_ds = random_split(dataset, [train_size, val_size])
@@ -129,7 +74,7 @@ def train(args):
         train_ds,
         batch_size=args.batch_size,
         shuffle=True,
-        collate_fn=lambda b: collate_batch(b, pad_id=0),
+        collate_fn=lambda b: collate_batch(b, pad_id=0),  # <pad>=0
         num_workers=0,  # Windows için güvenli
         pin_memory=use_cuda,
     )
@@ -142,7 +87,9 @@ def train(args):
         pin_memory=use_cuda,
     )
 
-    # Model config & model
+    # -------------------------------
+    # 4) Model & optimizer
+    # -------------------------------
     config = MiniGPTConfig(
         vocab_size=tokenizer.vocab_size,
         d_model=args.d_model,
@@ -156,7 +103,7 @@ def train(args):
 
     optimizer = AdamW(model.parameters(), lr=args.lr)
 
-    # Yeni torch.amp API'si
+    # AMP scaler (varsa CUDA)
     if use_cuda:
         scaler = torch.amp.GradScaler("cuda")
         print("Using torch.amp GradScaler (cuda)")
@@ -164,7 +111,9 @@ def train(args):
         scaler = None
         print("CUDA not available, training on CPU without AMP")
 
-    # Checkpoint yolları
+    # -------------------------------
+    # 5) Checkpoint & log ayarları
+    # -------------------------------
     ckpt_last_path = os.path.join("outputs", "checkpoints", "train_state_last.pt")
     ckpt_best_path = os.path.join("outputs", "checkpoints", "model_best.pt")
 
@@ -180,7 +129,9 @@ def train(args):
             writer = csv.writer(f)
             writer.writerow(["epoch", "train_loss", "val_loss"])
 
-    # Eğer resume isteniyorsa ve checkpoint varsa, ordan devam et
+    # -------------------------------
+    # 6) Resume logic (varsa)
+    # -------------------------------
     if args.resume and os.path.exists(ckpt_last_path):
         print(f"🔁 Resuming training from {ckpt_last_path}")
         ckpt = torch.load(ckpt_last_path, map_location=device)
@@ -195,7 +146,7 @@ def train(args):
         # Scaler durumu (GPU + kayıtlıysa)
         if scaler is not None and "scaler_state" in ckpt and ckpt["scaler_state"] is not None:
             try:
-                scaler.load_state_dict(ckpt["scaler_state"])
+                scaler.load_state_dict(ckpt["sccaler_state"])
             except Exception as e:
                 print(f"Warning: Could not load scaler state: {e}")
 
@@ -218,7 +169,9 @@ def train(args):
         )
         return
 
-    # Epoch döngüsü
+    # -------------------------------
+    # 7) Epoch döngüsü
+    # -------------------------------
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_start_time = time.time()
 
@@ -265,7 +218,9 @@ def train(args):
 
         train_loss = total_loss / max(1, total_tokens)
 
-        # Validation
+        # -------------------------------
+        # 8) Validation
+        # -------------------------------
         model.eval()
         val_loss_total = 0.0
         val_tokens = 0
@@ -278,7 +233,6 @@ def train(args):
                 val_loss_total += loss.item() * tokens
                 val_tokens += tokens
 
-        # Epoch sonu validation metriği
         val_loss = val_loss_total / max(1, val_tokens)
         ppl = math.exp(val_loss)
 
@@ -326,27 +280,35 @@ def train(args):
 if __name__ == "__main__":
     # Argümanlarla uğraşmamak için sabit ayarlar
     class Args:
+        # ===========================
         # Veri ve model ayarları
-        wiki_path = "data/wiki_clean_processed.txt"
-        chat_path = "data/turkish_chat_casual.txt"
-        data_path = "data/mixed_wiki_chat.txt"  # build_mixed_corpus çıktısı
+        # ===========================
+        # Kendi dataset dosyan:
+        data_path = "data/synthetic.txt"
 
-        limit_lines = 1_500_000  # WIKI için satır limiti
-        max_len = 256            # Maksimum token uzunluğu
+        # None ise tüm satırlar kullanılır, istersen limit koyabilirsin
+        limit_lines = None
+        max_len = 256  # Maksimum token uzunluğu
 
+        # ===========================
         # Eğitim ayarları
+        # ===========================
         batch_size = 64
-        epochs = 10
+        epochs = 20
         lr = 3e-4
 
+        # ===========================
         # Model boyutları
+        # ===========================
         d_model = 512
         n_heads = 8
         n_layers = 8
         d_ff = 2048
         dropout = 0.1
 
+        # ===========================
         # Log ve resume
+        # ===========================
         log_interval = 250  # Kaç batch'te bir log basılsın
         resume = True      # Checkpoint varsa kaldığı yerden devam et
 

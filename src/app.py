@@ -19,7 +19,7 @@ from model import MiniGPT, MiniGPTConfig
 
 class CompleteRequest(BaseModel):
     prompt: str
-    max_new_tokens: int = 3
+    max_new_tokens: int = 64
 
 
 class CompleteResponse(BaseModel):
