@@ -27,7 +27,7 @@ Built with **FastAPI** for high-performance backend processing and vanilla **HTM
 
 <div align="center">
 
-![App Screenshot 1](C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-23 012042.png)
+![App Screenshot 1]("C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-23 012042.png")
 
 </div>
 
