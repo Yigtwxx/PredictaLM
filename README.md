@@ -27,7 +27,7 @@ Built with **FastAPI** for high-performance backend processing and vanilla **HTM
 
 <div align="center">
 
-![App Screenshot 1]("C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-23 012042.png")
+<img width="1424" height="924" alt="Ekran görüntüsü 2025-11-23 012042" src="https://github.com/user-attachments/assets/2cce67af-5eda-4266-8788-add8068dd1f3" />
 
 </div>
 
