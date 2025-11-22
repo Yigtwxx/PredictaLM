@@ -4,55 +4,14 @@ function setupBackgroundTyping() {
   if (!layer) return;
 
   const words = [
-    "neural",
-    "token",
-    "context",
-    "embedding",
-    "gradient",
-    "attention",
-    "transformer",
-    "sequence",
-    "PyTorch",
-    "dataset",
-    "predict",
-    "language",
-    "model",
-    "entropy",
-    "loss",
-    "Python",
-    "batch",
-    "epoch",
-    "optimizer",
-    "tensor",
-    "turkish",
-    "NLP",
-    "PredictaLM",
-    "GPU",
-    "RTX4070",
-    "NVIDIA",
-    "inference",
-    "training",
-    "fine-tune",
-    "pretrain",
-    "huggingface",
-    "open-source",
-    "license",
-    "code",
-    "AI",
-    "machine",
-    "learning",
-    "deep",
-    "framework",
-    "API",
-    "server",
-    "client",
-    "response",
-    "Google",
-    "cloud",
-    "compute",
-    "memory",
-    "storage",
-    "algorithm",
+    "neural", "token", "context", "embedding", "gradient", "attention",
+    "transformer", "sequence", "PyTorch", "dataset", "predict", "language",
+    "model", "entropy", "loss", "Python", "batch", "epoch", "optimizer",
+    "tensor", "turkish", "NLP", "PredictaLM", "GPU", "RTX4070", "NVIDIA",
+    "inference", "training", "fine-tune", "pretrain", "huggingface",
+    "open-source", "license", "code", "AI", "machine", "learning", "deep",
+    "framework", "API", "server", "client", "response", "Google", "cloud",
+    "compute", "memory", "storage", "algorithm",
   ];
 
   function spawnPhrase() {
@@ -102,7 +61,6 @@ function setupBackgroundTyping() {
 }
 
 // === MODEL ÇAĞRISI ===
-// Buradaki URL'yi kendi FastAPI endpoint'ine göre değiştir:
 const API_URL = "/generate";
 
 async function callModel() {
@@ -137,9 +95,6 @@ async function callModel() {
     }
 
     const data = await res.json();
-
-    // FastAPI tarafında response'u nasıl döndürdüysen ona göre:
-    // Örnek: {"output": "..."} veya {"completion": "..."}
     const completion = data.output || data.completion || JSON.stringify(data, null, 2);
 
     outputEl.value = completion;
@@ -162,79 +117,182 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === GHOST PREDICTION (VS Code tarzı inline tahmin) ===
-const inputEl = document.getElementById("input-text");
-const ghostEl = document.getElementById("ghost-prediction");
+  // === YENİ SAYFA BUTONU ===
+  const newPageBtn = document.getElementById("new-page-button");
+  if (newPageBtn) {
+    newPageBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const inputEl = document.getElementById("input-text");
+      const outputEl = document.getElementById("output-text");
+      const statusEl = document.getElementById("status");
 
-// Ana API_URL'in muhtemelen "/generate" için kullanıldığını varsayıyoruz.
-// Ghost için özel bir URL tanımlayalım:
-const GHOST_URL = "http://localhost:7860/complete";
+      if (inputEl) inputEl.value = "";
+      if (outputEl) outputEl.value = "";
+      if (statusEl) statusEl.textContent = "";
+    });
+  }
 
-if (inputEl && ghostEl) {
-  let ghostTimeout = null;
+  // === KAYDET BUTONU ===
+  const saveBtn = document.getElementById("save-button");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const inputEl = document.getElementById("input-text");
+      const outputEl = document.getElementById("output-text");
 
-  inputEl.addEventListener("input", () => {
-    const current = inputEl.value;
+      if (!inputEl || !outputEl) return;
 
-    if (!current.trim()) {
-      ghostEl.textContent = "";
-      ghostEl.classList.remove("visible");
-      return;
-    }
+      const prompt = inputEl.value.trim();
+      const completion = outputEl.value.trim();
 
-    clearTimeout(ghostTimeout);
-    ghostTimeout = setTimeout(async () => {
+      if (!prompt || !completion) {
+        alert("Kaydetmek için hem girdi hem de çıktı olmalı.");
+        return;
+      }
+
       try {
-        const prompt = inputEl.value;
-        if (!prompt.trim()) {
-          ghostEl.textContent = "";
-          ghostEl.classList.remove("visible");
-          return;
-        }
-
-        const res = await fetch(GHOST_URL, {
+        const res = await fetch("/save", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // /complete endpoint'i CompleteRequest bekliyor:
-          // { "prompt": "...", "max_new_tokens": 3 }
-          body: JSON.stringify({ prompt, max_new_tokens: 3 }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, completion })
         });
 
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
-
-        const data = await res.json();
-        // /complete cevabı: { next_word, full_completion }
-        const full = data.full_completion || "";
-        const next = data.next_word || "";
-
-        if (!full && !next) {
-          ghostEl.textContent = "";
-          ghostEl.classList.remove("visible");
-          return;
-        }
-
-        // 1) Tercihen full_completion prompt ile başlıyorsa onu göster
-        if (full && full.startsWith(prompt)) {
-          ghostEl.textContent = full;
-        } else if (next) {
-          // 2) Değilse sadece bir sonraki kelimeyi ekle
-          const base = prompt.endsWith(" ") ? prompt : prompt + " ";
-          ghostEl.textContent = base + next;
+        if (res.ok) {
+          fetchSavedItems();
         } else {
-          ghostEl.textContent = "";
-          ghostEl.classList.remove("visible");
-          return;
+          console.error("Kaydetme hatası:", res.status);
         }
-
-        ghostEl.classList.add("visible");
       } catch (err) {
-        console.error("Ghost prediction error:", err);
+        console.error("Kaydetme hatası:", err);
+      }
+    });
+  }
+
+  // === KAYDEDİLENLERİ LİSTELE ===
+  async function fetchSavedItems() {
+    const listEl = document.getElementById("saved-list");
+    if (!listEl) return;
+
+    try {
+      const res = await fetch("/saved");
+      if (!res.ok) return;
+
+      const items = await res.json();
+
+      listEl.innerHTML = "";
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "saved-item";
+
+        const dateStr = new Date(item.created_at).toLocaleString("tr-TR");
+
+        div.innerHTML = `
+          <div class="saved-item-prompt" title="${item.prompt}">${item.prompt}</div>
+          <div class="saved-item-date">${dateStr}</div>
+          <button class="delete-btn" title="Sil">🗑️</button>
+        `;
+
+        // Tıklama: Yükle
+        div.addEventListener("click", () => {
+          const inputEl = document.getElementById("input-text");
+          const outputEl = document.getElementById("output-text");
+          if (inputEl) inputEl.value = item.prompt;
+          if (outputEl) outputEl.value = item.completion;
+        });
+
+        // Silme butonu
+        const delBtn = div.querySelector(".delete-btn");
+        delBtn.addEventListener("click", async (e) => {
+          e.stopPropagation(); // Kartın tıklanmasını engelle
+          if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+
+          try {
+            const res = await fetch(`/saved/${item.id}`, { method: "DELETE" });
+            if (res.ok) {
+              fetchSavedItems(); // Listeyi yenile
+            } else {
+              console.error("Silme hatası");
+            }
+          } catch (err) {
+            console.error("Silme hatası:", err);
+          }
+        });
+
+        listEl.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Liste yüklenemedi:", err);
+    }
+  }
+
+  // Sayfa açılınca listeyi çek
+  fetchSavedItems();
+
+  // === GHOST PREDICTION (VS Code tarzı inline tahmin) ===
+  const inputEl = document.getElementById("input-text");
+  const ghostEl = document.getElementById("ghost-prediction");
+  const GHOST_URL = "http://localhost:7860/complete";
+
+  if (inputEl && ghostEl) {
+    let ghostTimeout = null;
+
+    inputEl.addEventListener("input", () => {
+      const current = inputEl.value;
+
+      if (!current.trim()) {
         ghostEl.textContent = "";
         ghostEl.classList.remove("visible");
+        return;
+      }
+
+      clearTimeout(ghostTimeout);
+      ghostTimeout = setTimeout(async () => {
+        try {
+          const prompt = inputEl.value;
+          if (!prompt.trim()) {
+            ghostEl.textContent = "";
+            ghostEl.classList.remove("visible");
+            return;
+          }
+
+          const res = await fetch(GHOST_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt, max_new_tokens: 3 }),
+          });
+
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
+
+          const data = await res.json();
+          const full = data.full_completion || "";
+          const next = data.next_word || "";
+
+          if (!full && !next) {
+            ghostEl.textContent = "";
+            ghostEl.classList.remove("visible");
+            return;
+          }
+
+          if (full && full.startsWith(prompt)) {
+            ghostEl.textContent = full;
+          } else if (next) {
+            const base = prompt.endsWith(" ") ? prompt : prompt + " ";
+            ghostEl.textContent = base + next;
+          } else {
+            ghostEl.textContent = "";
+            ghostEl.classList.remove("visible");
+            return;
+          }
+
+          ghostEl.classList.add("visible");
+        } catch (err) {
+          console.error("Ghost prediction error:", err);
+          ghostEl.textContent = "";
+          ghostEl.classList.remove("visible");
         }
       }, 250);
     });

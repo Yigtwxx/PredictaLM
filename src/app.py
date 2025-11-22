@@ -24,10 +24,12 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from db.session import SessionLocal, engine
-from db.models import GenerationLog
+from db.models import GenerationLog, SavedItem
 
 # Tablonun oluşmasını sağla (Base import etmeden)
+# Tablonun oluşmasını sağla (Base import etmeden)
 GenerationLog.__table__.create(bind=engine, checkfirst=True)
+SavedItem.__table__.create(bind=engine, checkfirst=True)
 
 # =====================================================
 #   MODEL / TOKENIZER IMPORT
@@ -53,6 +55,18 @@ class CompleteResponse(BaseModel):
 
 class GenerateResponse(BaseModel):
     output: str
+
+
+class SaveRequest(BaseModel):
+    prompt: str
+    completion: str
+
+
+class SavedItemResponse(BaseModel):
+    id: int
+    prompt: str
+    completion: str
+    created_at: str
 
 
 # =====================================
@@ -202,6 +216,58 @@ async def generate_endpoint(req: CompleteRequest):
     # ================================
 
     return GenerateResponse(output=full_text)
+
+
+@app.post("/save")
+def save_item(req: SaveRequest):
+    """
+    Kullanıcının beğendiği bir çıktıyı kaydeder.
+    """
+    db = SessionLocal()
+    try:
+        item = SavedItem(
+            prompt=req.prompt,
+            completion=req.completion
+        )
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+        return {"status": "ok", "id": item.id}
+    finally:
+        db.close()
+@app.get("/saved", response_model=list[SavedItemResponse])
+def get_saved_items():
+    """
+    Kaydedilen tüm öğeleri döner (en yeniden eskiye).
+    """
+    db = SessionLocal()
+    try:
+        items = db.query(SavedItem).order_by(SavedItem.created_at.desc()).all()
+        # Pydantic modeline uygun formata çevir
+        return [
+            SavedItemResponse(
+                id=item.id,
+                prompt=item.prompt,
+                completion=item.completion,
+                created_at=str(item.created_at)
+            )
+            for item in items
+        ]
+    finally:
+        db.close()
+
+@app.delete("/saved/{item_id}")
+async def delete_saved_item(item_id: int):
+    db = SessionLocal()
+    try:
+        item = db.query(SavedItem).filter(SavedItem.id == item_id).first()
+        if not item:
+            return {"error": "Item not found"}
+        db.delete(item)
+        db.commit()
+        return {"message": "Deleted"}
+    finally:
+        db.close()
 
 
 # =====================================

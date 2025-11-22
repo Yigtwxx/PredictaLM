@@ -188,7 +188,8 @@ body {
   font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   font-size: 13px;
-  color: rgba(220, 220, 255, 0.45); /* açık gri / lila ton */
+  color: rgba(220, 220, 255, 0.45);
+  /* açık gri / lila ton */
   pointer-events: none;
   white-space: pre-wrap;
   z-index: 1;
@@ -201,4 +202,127 @@ body {
 #ghost-prediction.visible {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  position: fixed;
+  left: 20px;
+  top: 60px;
+  /* Alt tarafa yapışmasın, içeriğe göre uzasın ama çok taşarsa scroll olsun */
+  bottom: auto;
+  max-height: 70vh;
+  width: 260px;
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  z-index: 10;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  margin: 10px 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Yeni Sayfa butonu için özel stil (kutusuz, sola dayalı) */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  margin-bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.icon-btn:hover {
+  color: #fff;
+}
+
+.saved-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.saved-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.saved-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.saved-item-prompt {
+  font-weight: 600;
+  color: #ddd;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 20px;
+}
+
+.saved-item-date {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.delete-btn {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 10px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.delete-btn:hover {
+  color: #ff5555;
+}
+
+/* === BUTTONS === */
+.secondary-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #fff !important;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+/* Responsive Sidebar Adjustment */
+@media (max-width: 1300px) {
+  .sidebar {
+    display: none;
+  }
 }
