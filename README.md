@@ -2,9 +2,6 @@
 
 <div align="center">
 
-![PredictaLM Banner](https://via.placeholder.com/1200x400?text=PredictaLM+Banner+Placeholder)
-<!-- 👆 Replace this URL with your actual banner image -->
-
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
