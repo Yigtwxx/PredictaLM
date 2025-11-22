@@ -1,4 +1,5 @@
 import os
+import sys
 import webbrowser
 from contextlib import asynccontextmanager
 
@@ -8,6 +9,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
+
+# =====================================================
+#   DB IMPORT (sqlite + sqlalchemy)
+#   - db klasörü PredictaLM kökünde: PredictaLM/db/...
+#   - app.py: PredictaLM/src/app.py
+#   Kök dizini sys.path'e ekleyip db'yi görüyoruz.
+# =====================================================
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))   # .../PredictaLM/src
+PROJECT_ROOT = os.path.dirname(CURRENT_DIR)                # .../PredictaLM
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from db.session import SessionLocal, engine
+from db.models import GenerationLog
+
+# Tablonun oluşmasını sağla (Base import etmeden)
+GenerationLog.__table__.create(bind=engine, checkfirst=True)
+
+# =====================================================
+#   MODEL / TOKENIZER IMPORT
+# =====================================================
 
 from tokenizer import WordTokenizer
 from model import MiniGPT, MiniGPTConfig
@@ -159,8 +183,24 @@ async def generate_endpoint(req: CompleteRequest):
     """
     UI'nin kullandığı basit endpoint.
     Sadece full_completion döner -> {"output": "..."}
+    Ek olarak: SQLite'da generation_logs tablosuna kaydediyoruz.
     """
     _, full_text = _generate_internal(req.prompt, req.max_new_tokens)
+
+    # ==== DB'ye LOG YAZ (SQLite) ====
+    db = SessionLocal()
+    try:
+        log = GenerationLog(
+            prompt=req.prompt,
+            completion=full_text,
+            is_correct=None,  # İleride feedback eklersen güncelleyebilirsin
+        )
+        db.add(log)
+        db.commit()
+    finally:
+        db.close()
+    # ================================
+
     return GenerateResponse(output=full_text)
 
 

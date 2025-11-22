@@ -1,8 +1,8 @@
 import os
 import torch
 
-from tokenizer import WordTokenizer, SPECIAL_TOKENS
-from model import MiniGPT, MiniGPTConfig
+from .tokenizer import WordTokenizer, SPECIAL_TOKENS
+from .model import MiniGPT, MiniGPTConfig
 
 
 def load_model_and_tokenizer(checkpoint_path: str, device: torch.device):
