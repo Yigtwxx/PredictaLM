@@ -23,9 +23,12 @@
 Built with **FastAPI** for high-performance backend processing and vanilla **HTML/CSS/JS** for a lightweight, responsive frontend, PredictaLM bridges the gap between complex neural network operations and user-friendly design.
 
 ## 🖼️ PredictaLM Arayüzü
-<p align="center">
-  <img src="/mnt/data/Ekran görüntüsü 2025-11-23 012042.png" alt="PredictaLM UI" width="800">
-</p>
+<img
+  width="1424"
+  height="924"
+  alt="PredictaLM UI"
+  src="C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-23 012042.png"
+/>
 
 
 </div>
