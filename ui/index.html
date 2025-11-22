@@ -1,49 +1,60 @@
 <!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <title>PredictaLM</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="app-root">
-      <!-- ARKA PLAN YAZI EFEKTİ -->
-      <div class="background-layer" id="background-layer"></div>
 
-      <!-- ÖN PANEL -->
-      <div class="main-panel">
-        <h1 class="app-title">PredictaLM</h1>
-        <p class="app-subtitle">Metnini yaz, modeli dene.</p>
+<head>
+  <meta charset="UTF-8" />
+  <title>PredictaLM</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-        <div class="io-container">
-          <div class="io-block">
-            <label for="input-text">Girdi</label>
-            <!-- 👇 Ghost text için wrapper -->
-            <div class="input-wrapper">
-              <div id="ghost-prediction"></div>
-              <textarea
-                id="input-text"
-                placeholder="Buraya metin yaz..."
-              ></textarea>
-            </div>
-          </div>
-          <div class="io-block">
-            <label for="output-text">Model Çıktısı</label>
-            <textarea
-              id="output-text"
-              placeholder="Model çıktısı burada görünecek..."
-              readonly
-            ></textarea>
-          </div>
-        </div>
+<body>
+  <div class="app-root">
+    <!-- ARKA PLAN YAZI EFEKTİ -->
+    <div class="background-layer" id="background-layer"></div>
 
-        <div class="controls">
-          <button id="run-button">Çalıştır</button>
-          <span id="status" class="status-text"></span>
-        </div>
+    <!-- SIDEBAR (KAYDEDİLENLER) -->
+    <div class="sidebar">
+      <h2 class="sidebar-title">Kaydedilenler</h2>
+
+      <!-- YENİ SAYFA BUTONU -->
+      <button id="new-page-button" class="secondary-btn"
+        style="width: 100%; margin-bottom: 15px; justify-content: center;">+ Yeni Sayfa</button>
+
+      <div id="saved-list" class="saved-list">
+        <!-- JS ile dolacak -->
       </div>
     </div>
 
-    <script src="app.js"></script>
-  </body>
+    <!-- ÖN PANEL -->
+    <div class="main-panel">
+      <h1 class="app-title">PredictaLM</h1>
+      <p class="app-subtitle">Metnini yaz, modeli dene.</p>
+
+      <div class="io-container">
+        <div class="io-block">
+          <label for="input-text">Girdi</label>
+          <!-- 👇 Ghost text için wrapper -->
+          <div class="input-wrapper">
+            <div id="ghost-prediction"></div>
+            <textarea id="input-text" placeholder="Buraya metin yaz..."></textarea>
+          </div>
+        </div>
+        <div class="io-block">
+          <label for="output-text">Model Çıktısı</label>
+          <textarea id="output-text" placeholder="Model çıktısı burada görünecek..." readonly></textarea>
+        </div>
+      </div>
+
+      <!-- BUTONLAR -->
+      <div class="controls">
+        <button id="save-button" class="secondary-btn">Kaydet</button>
+        <button id="run-button">Çalıştır</button>
+        <span id="status" class="status-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
 </html>
