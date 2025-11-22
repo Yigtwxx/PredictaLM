@@ -136,16 +136,28 @@ PredictaLM/
 ├── requirements.txt            # 📦 Python dependencies
 └── README.md                   # 📖 Project documentation
 ```
+---
+
+## 📜 License
+
+Released under the **MIT License**. See `LICENSE` for details.
 
 ## 🤝 Contact & Connect
 
-Created by **Yigit ERDOGAN**
+---
 
-<a href="www.linkedin.com/in/yiğit-erdoğan-ba7a64294" target="_blank">
-  <img src="https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Profile" />
-</a>
+## 💬 Author
+
+**Yiğit Erdoğan (Yigtwxx)**
+📧 [yigiterdogan6@icloud.com](mailto:yigiterdogan6@icloud.com)
+
+
+🧠 Focus Areas: Deep Learning • Computer Vision • Data Science
 
 ---
+LinkedIn: [Yiğit ERDOĞAN](www.linkedin.com/in/yiğit-erdoğan-ba7a64294)
+
+--- 
 
 <div align="center">
   <sub>Built with ❤️ using Python and Deep Learning</sub>
