@@ -26,8 +26,10 @@
 Built with **FastAPI** for high-performance backend processing and vanilla **HTML/CSS/JS** for a lightweight, responsive frontend, PredictaLM bridges the gap between complex neural network operations and user-friendly design.
 
 <div align="center">
-  <img src="C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-22 195812.png" width="45%" alt="App Screenshot 1">
-  <img src="C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-22 200143.png" width="45%" alt="App Screenshot 2">
+
+![App Screenshot 1](screenshots/screenshot1.png)
+![App Screenshot 2](screenshots/screenshot2.png)
+
 </div>
 
 ## ✨ Features
@@ -142,7 +144,7 @@ PredictaLM/
 
 Created by **Yigit ERDOGAN**
 
-<a href="https://www.linkedin.com/in/yigit-cakir-931725256/" target="_blank">
+<a href="www.linkedin.com/in/yiğit-erdoğan-ba7a64294" target="_blank">
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Profile" />
 </a>
 
