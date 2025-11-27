@@ -101,8 +101,8 @@ PredictaLM follows a modular 3-tier architecture:
 
 3.  **Interact**
     *   Type a prompt in the input box.
-    *   Click **"Çalıştır" (Run)** to generate text.
-    *   Click **"Kaydet" (Save)** to store interesting results.
+    *   Click Run to generate text.
+    *   Click Save to store interesting results.
     *   Use the sidebar to view and manage your saved history.
 
 ## 📂 Project Structure
