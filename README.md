@@ -26,7 +26,6 @@ Built with **FastAPI** for high-performance backend processing and vanilla **HTM
  <img width="1600" height="900" alt="Ekran görüntüsü 2025-11-23 012042" src="https://github.com/user-attachments/assets/3c643000-b23f-46a8-9ec7-7dae56cc16a7" />
 
 
-
 </div>
 
 ## ✨ Features
