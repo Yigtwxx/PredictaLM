@@ -2,9 +2,6 @@
 
 <div align="center">
 
-![PredictaLM Banner](https://via.placeholder.com/1200x400?text=PredictaLM+Banner+Placeholder)
-<!-- 👆 Replace this URL with your actual banner image -->
-
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
@@ -25,9 +22,10 @@
 
 Built with **FastAPI** for high-performance backend processing and vanilla **HTML/CSS/JS** for a lightweight, responsive frontend, PredictaLM bridges the gap between complex neural network operations and user-friendly design.
 
-<div align="center">
+## 🖼️ PredictaLM UI
+ <img width="1600" height="900" alt="Ekran görüntüsü 2025-11-23 012042" src="https://github.com/user-attachments/assets/3c643000-b23f-46a8-9ec7-7dae56cc16a7" />
 
-![App Screenshot 1](C:\Users\Asus\Pictures\Screenshots\Ekran görüntüsü 2025-11-23 012042.png)
+
 
 </div>
 
@@ -103,8 +101,8 @@ PredictaLM follows a modular 3-tier architecture:
 
 3.  **Interact**
     *   Type a prompt in the input box.
-    *   Click **"Çalıştır" (Run)** to generate text.
-    *   Click **"Kaydet" (Save)** to store interesting results.
+    *   Click Run to generate text.
+    *   Click Save to store interesting results.
     *   Use the sidebar to view and manage your saved history.
 
 ## 📂 Project Structure
@@ -138,16 +136,28 @@ PredictaLM/
 ├── requirements.txt            # 📦 Python dependencies
 └── README.md                   # 📖 Project documentation
 ```
+---
+
+## 📜 License
+
+Released under the **MIT License**. See `LICENSE` for details.
 
 ## 🤝 Contact & Connect
 
-Created by **Yigit ERDOGAN**
+---
 
-<a href="www.linkedin.com/in/yiğit-erdoğan-ba7a64294" target="_blank">
-  <img src="https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Profile" />
-</a>
+## 💬 Author
+
+**Yiğit Erdoğan (Yigtwxx)**
+📧 [yigiterdogan6@icloud.com](mailto:yigiterdogan6@icloud.com)
+
+
+🧠 Focus Areas: Deep Learning • Computer Vision • Data Science
 
 ---
+LinkedIn: [Yiğit ERDOĞAN](www.linkedin.com/in/yiğit-erdoğan-ba7a64294)
+
+--- 
 
 <div align="center">
   <sub>Built with ❤️ using Python and Deep Learning</sub>

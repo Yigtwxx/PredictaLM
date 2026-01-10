@@ -201,7 +201,48 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ---------------------
+# PredictaLM Specific
+# ---------------------
+
+# --- Training outputs ---
+outputs/
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.csv
+
+# --- Data files ---
+data/*.txt
+data/*.xz
+data/*.json
+data/*.csv
+data/*.zip
+# Don't ignore empty folder marker if it exists
+!data/.keep
+
+# --- Database ---
+*.db
+*.sqlite3
+*.sqlite3-journal
+predictalm.db
+predictalm.db-journal
+
+# --- Logs ---
+*.log
+
+# --- VS Code workspace ---
+*.code-workspace
+
+# --- Checkpoints ---
+checkpoints/
+
+# --- Tools ---
+tools/*.ipynb
