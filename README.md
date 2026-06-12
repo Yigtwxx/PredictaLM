@@ -1,4 +1,4 @@
-# PredictaLM 🧠
+# PredictaLM 
 
 <div align="center">
 
